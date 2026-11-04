@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name           Reddit Neue
 @namespace      reddit-neue
-@version        0.0.1
+@version        0.0.3
 @description    A minimal, typography-first restyle of new Reddit. Airy and discreet. Light, dark, slate, paper or follows your system. Work in progress.
 @author         wordsandpics
 @license        MIT
@@ -242,16 +242,33 @@ shreddit-profile-comment .md {
   font-size: var(--read-size);
   line-height: var(--read-lh);
 }
-shreddit-post-text-body .md a,
-shreddit-comment div[slot="comment"] a {
+/* LINKS IN RUNNING TEXT: one rule for every place where a link sits inside a sentence. Policy: ink colour, a quiet 1px underline
+   (colour --ul), the accent colour only on hover. To cover a new place (say a new kind of card), add its text container to this
+   list; do not write another copy. Not in the list on purpose: titles, names, menus and buttons (they get no underline), and the
+   wrapper link Reddit puts around a whole text preview (a[slot=text-body]), which is excluded below. The base rule in section 3
+   (ink, accent on hover) still covers everything else, at zero specificity, so Reddit's own button and tab colours are untouched. */
+:is(
+  shreddit-post-text-body .md,                       /* post page: the post text */
+  shreddit-comment div[slot="comment"],              /* comments */
+  shreddit-post[view-type] [slot="text-body"],       /* feed: text preview */
+  shreddit-post[view-type] .feed-card-text-preview,  /* feed: preview, and the original embedded in a repost */
+  shreddit-profile-comment .md,                      /* profile: your comments list */
+  .wiki-content                                      /* wiki pages */
+) a:not([slot="text-body"]):is(:link, :visited) {
   color: var(--ink);
   text-decoration: underline;
   text-decoration-color: var(--ul);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
 }
-shreddit-post-text-body .md a:hover,
-shreddit-comment div[slot="comment"] a:hover { color: var(--link); text-decoration-color: var(--link); }
+:is(
+  shreddit-post-text-body .md,
+  shreddit-comment div[slot="comment"],
+  shreddit-post[view-type] [slot="text-body"],
+  shreddit-post[view-type] .feed-card-text-preview,
+  shreddit-profile-comment .md,
+  .wiki-content
+) a:not([slot="text-body"]):is(:link, :visited):hover { color: var(--link); text-decoration-color: var(--link); }
 
 /* ------------------------------------------------------------------ *
  * 5. Feed (home, popular, subreddit and profile lists)
@@ -294,16 +311,6 @@ shreddit-post[view-type] [slot="text-body"] {
   line-height: 1.5;
   color: var(--soft);
 }
-/* links inside a text preview: the same quiet underline as in posts and comments, whatever state the link is in. Not the wrapper link
-   (a[slot=text-body]) that Reddit puts around the whole preview. */
-shreddit-post[view-type] [slot="text-body"] a:not([slot="text-body"]):is(:link, :visited) {
-  color: var(--ink);
-  text-decoration: underline;
-  text-decoration-color: var(--ul);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.2em;
-}
-shreddit-post[view-type] [slot="text-body"] a:not([slot="text-body"]):is(:link, :visited):hover { color: var(--link); text-decoration-color: var(--link); }
 /* The original post embedded in a repost (a card inside the feed row): same treatment as a feed row, one step smaller. */
 shreddit-post[view-type] .crosspost-credit-bar { font-size: 0.875rem; color: var(--muted); }
 shreddit-post[view-type] .crosspost-credit-bar :is(span, faceplate-timeago, time) { font-size: inherit; }
@@ -312,10 +319,6 @@ shreddit-post[view-type] .crosspost-title a:is(:link, :visited) {
   font-size: 1.125rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; text-wrap: balance; color: var(--ink); text-decoration: none;
 }
 shreddit-post[view-type] .feed-card-text-preview { font-family: var(--f-read); font-size: 0.9375rem; line-height: 1.5; color: var(--soft); }
-shreddit-post[view-type] .feed-card-text-preview a:is(:link, :visited) {
-  color: var(--ink); text-decoration: underline; text-decoration-color: var(--ul); text-decoration-thickness: 1px; text-underline-offset: 0.2em;
-}
-shreddit-post[view-type] .feed-card-text-preview a:is(:link, :visited):hover { color: var(--link); text-decoration-color: var(--link); }
 shreddit-post[view-type] div:has(> .feed-card-text-preview) + div { font-size: 0.875rem; }     /* the "2 upvotes" line under an embedded post */
 shreddit-post[view-type] div:has(> .feed-card-text-preview) + div * { font-size: inherit; }
 shreddit-post[view-type] [slot="thumbnail"] { border-radius: 4px; }
@@ -461,15 +464,13 @@ games-section-badge-wrapper { display: none !important; }
 
 /* ------------------------------------------------------------------ *
  * 12. Wiki pages (mild pass): the same type as posts. Paragraph rhythm, quotes, lists and code come from the shared text rules
- *     in section 6 (the wiki container is added to them); here only the font, headings, links and tables.
+ *     in section 6 (the wiki container is added to them); here only the font, headings and tables (links come from the shared rule in section 4).
  * ------------------------------------------------------------------ */
 .wiki-content { font-family: var(--f-read); font-size: var(--read-size); line-height: var(--read-lh); color: var(--ink); }
 .wiki-content :is(h1, h2, h3, h4) { font-family: var(--f-ui); font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; text-wrap: balance; color: var(--ink); }
 .wiki-content h1 { font-size: 1.5rem; margin: 2.25rem 0 0.75rem; }
 .wiki-content h2 { font-size: 1.25rem; margin: 1.75rem 0 0.5rem; }
 .wiki-content h3, .wiki-content h4 { font-size: 1.0625rem; margin: 1.5rem 0 0.5rem; }
-.wiki-content a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--ul); text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
-.wiki-content a:hover { color: var(--link); text-decoration-color: var(--link); }
 .wiki-content table { border-collapse: collapse; width: 100%; margin: 0 0 1em; }
 .wiki-content :is(th, td) { border: 1px solid var(--line); padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
 .wiki-content th { font-family: var(--f-ui); font-weight: 600; background: var(--bg-2); }
@@ -500,14 +501,17 @@ notification-item [data-testid="body"] { line-height: 1.5; }
 /* ------------------------------------------------------------------ *
  * 15. The link popover in the comment editor (the little card with the link, a pencil and a bin). Its link is a plain <a> inside
  *     Reddit's shadow DOM with no `part` name and no colour of its own, so the browser's default link blue shows: a dark blue that
- *     cannot be read on the dark themes. We cannot style that link, but the default colour follows the element's `color-scheme`
- *     (dark blue for light, pale blue for dark). color-scheme takes a keyword, not a number, so our own theme (--dark) is turned into a
- *     query: --dark is registered as a number so a style query can test it. Browsers without style queries keep the old look.
+ *     cannot be read on the dark themes. We cannot select that link, or even the popover (it sits inside the editor's shadow trees,
+ *     which page styles cannot enter; version 0.0.2 tried to select it directly and did nothing). But the default link colour follows
+ *     `color-scheme`, and color-scheme is inherited all the way down through shadow trees. So it is set on the editor elements that
+ *     DO sit in the page (`shreddit-composer`, `comment-composer-host`) and flows into the popover from there.
+ *     color-scheme takes a keyword, not a number, so our own theme (--dark) is turned into a query: --dark is registered as a number
+ *     so a style query can test it. Browsers without style queries keep the old look.
  * ------------------------------------------------------------------ */
 @property --dark { syntax: "<number>"; inherits: true; initial-value: 0; }
-rte-link-tooltip, rte-link-modal, rte-link-action-modal { color-scheme: light; }
+shreddit-composer, comment-composer-host { color-scheme: light; }
 @container style(--dark: 1) {
-  rte-link-tooltip, rte-link-modal, rte-link-action-modal { color-scheme: dark; }
+  shreddit-composer, comment-composer-host { color-scheme: dark; }
 }
 
 /* BEGIN generated by preview/gen-pairs.py */

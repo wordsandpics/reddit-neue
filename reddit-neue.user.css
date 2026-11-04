@@ -1,0 +1,474 @@
+/* ==UserStyle==
+@name           Reddit Neue
+@namespace      reddit-neue
+@version        0.0.1
+@description    A minimal, typography-first restyle of new Reddit. Airy and discreet. Light, dark, slate, paper or follows your system. Work in progress.
+@author         wordsandpics
+@license        MIT
+@preprocessor   default
+@var text   rn-ui-font      "Interface font" "'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif"
+@var text   rn-reading-font "Post and comment font" "'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif"
+@var range  rn-reading-size "Post and comment size" [16, 13, 22, 0.5, 'px']
+@var range  rn-reading-lh   "Post and comment line height" [1.55, 1.3, 2.0, 0.05, '']
+@var select rn-theme        "Colour theme" ["0:Follow system*", "1:Light", "2:Dark", "3:Slate", "4:Paper"]
+@var color  rn-accent       "Accent colour" #2f54eb
+==/UserStyle== */
+
+@import url("https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,300..700;1,300..700&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap");
+
+/* New Reddit only (www.reddit.com). old.reddit.com is deliberately not matched. */
+@-moz-document url-prefix("https://www.reddit.com/") {
+
+/* ------------------------------------------------------------------ *
+ * 1. Tokens. Same colours as Archive Neue (the AO3 style); copied, not linked.
+ *    Edit these (or use the Stylus settings panel) to taste.
+ * ------------------------------------------------------------------ */
+:root {
+  color-scheme: light dark;
+
+  --f-ui:   var(--rn-ui-font, 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif);
+  --f-read: var(--rn-reading-font, 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif);
+  --read-size: var(--rn-reading-size, 16px);
+  --read-lh:   var(--rn-reading-lh, 1.55);
+  --hue:       var(--rn-accent, #2f54eb);
+
+  /* Colour theme. --rn-theme comes from the style's "Colour theme" setting: 0 follow the system, 1 light, 2 dark, 3 slate, 4 paper.
+     --mode is -1 follow the system, 0 light, 1 dark (slate counts as dark, paper as light; Stylus option names can't be
+     negative, so we subtract 1). --sys is 1 when the system is dark. --dark works out to 0 or 1.
+     --slate and --paper are 1 only for their own theme. Each colour mixes light and dark by --dark, then slate and paper over that. */
+  --sys: 0;
+  --paper: calc(var(--rn-theme, 0) * (var(--rn-theme, 0) - 1) * (var(--rn-theme, 0) - 2) * (var(--rn-theme, 0) - 3) / 24);
+  --slate: calc(var(--rn-theme, 0) * (var(--rn-theme, 0) - 1) * (var(--rn-theme, 0) - 2) * (var(--rn-theme, 0) - 4) / -6);
+  --mode: calc(min(var(--rn-theme, 0), 2) - 1 - var(--paper));
+  --dark: calc((var(--mode) * (var(--mode) + 1) / 2) + (var(--mode) * (var(--mode) - 1) / 2) * var(--sys));
+
+  --bg:     color-mix(in srgb, #f7f0e8 calc(var(--paper) * 100%), color-mix(in srgb, #272e3d calc(var(--slate) * 100%), color-mix(in srgb, #111113 calc(var(--dark) * 100%), #ffffff)));
+  --bg-2:   color-mix(in srgb, #ede3d3 calc(var(--paper) * 100%), color-mix(in srgb, #2f3748 calc(var(--slate) * 100%), color-mix(in srgb, #19191c calc(var(--dark) * 100%), #f6f6f4)));
+  /* one step further from the page than --bg-2: hovers and selected rows */
+  --bg-3:   color-mix(in srgb, var(--bg-2) 92%, var(--ink));
+  --ink:    color-mix(in srgb, #2b2622 calc(var(--paper) * 100%), color-mix(in srgb, #e6e9ef calc(var(--slate) * 100%), color-mix(in srgb, #e9e9ea calc(var(--dark) * 100%), #17171a)));
+  --muted:  color-mix(in srgb, #6b6054 calc(var(--paper) * 100%), color-mix(in srgb, #aeb6c6 calc(var(--slate) * 100%), color-mix(in srgb, #9b9ba3 calc(var(--dark) * 100%), #6b6b73)));
+  /* between --muted and --ink in light mode (a bit more contrast for small text); same as --muted in dark */
+  --soft:   color-mix(in srgb, var(--muted) calc(100% - (1 - var(--dark)) * 30%), var(--ink));
+  --line:   color-mix(in srgb, #ddd0bb calc(var(--paper) * 100%), color-mix(in srgb, #3a4357 calc(var(--slate) * 100%), color-mix(in srgb, #303036 calc(var(--dark) * 100%), #e6e6e8)));
+  --line-2: color-mix(in srgb, #c9b99d calc(var(--paper) * 100%), color-mix(in srgb, #4b556b calc(var(--slate) * 100%), color-mix(in srgb, #4b4b53 calc(var(--dark) * 100%), #cfcfd4)));
+  /* outline of buttons: a step darker than --line-2 on the light themes */
+  --btn-line: color-mix(in srgb, #a9987b calc(var(--paper) * 100%), color-mix(in srgb, #4b556b calc(var(--slate) * 100%), color-mix(in srgb, #4b4b53 calc(var(--dark) * 100%), #a9a9b2)));
+  --link:   color-mix(in srgb, color-mix(in srgb, var(--hue) 55%, white) calc(var(--dark) * 100%), var(--hue));
+}
+@media (prefers-color-scheme: dark) {
+  :root { --sys: 1; }
+}
+
+/* ------------------------------------------------------------------ *
+ * 2. Reddit's own variables. Reddit paints nearly everything from these (on <html> and on a few
+ *    elements that carry .theme-beta / .theme-rpl), and they pass into its shadow DOM, so
+ *    setting them recolours parts we cannot select. Reddit also sets its own grey set directly on a few elements
+ *    (the strip above a post title, the sidebar grid, ...), so those are listed here too, and every line is !important
+ *    to out-rank Reddit's own rules (some of them contain an #id, which no amount of :root can beat).
+ * ------------------------------------------------------------------ */
+:root:root:root:root,
+:root:root:root:root .theme-beta,
+:root:root:root:root .theme-rpl,
+:root:root:root:root .sidebar-grid,
+:root:root:root:root .grid-container.grid,
+:root:root:root:root .wiki-pilot-communities,
+:root:root:root:root #pdp-credit-bar,
+:root:root:root:root #pdp-sticky-credit-bar,
+:root:root:root:root subreddit-header-card {
+  /* page and surfaces: one flat colour, hairlines instead of cards */
+  --color-neutral-background:                     var(--bg) !important;
+  --color-neutral-background-canvas:              var(--bg) !important;
+  --color-neutral-background-pinned:              var(--bg) !important;
+  --color-neutral-background-strong:              var(--bg) !important;
+  --color-neutral-background-medium:              var(--bg) !important;
+  --color-neutral-background-container:           var(--bg-2) !important;
+  --color-neutral-background-highlighted:         var(--bg-2) !important;
+  --color-neutral-background-gilded:              var(--bg-2) !important;
+  --color-neutral-background-weak:                var(--bg-2) !important;
+  --color-neutral-background-hover:               var(--bg-2) !important;
+  --color-neutral-background-strong-hover:        var(--bg-2) !important;
+  --color-neutral-background-weak-hover:          var(--bg-2) !important;
+  --color-neutral-background-container-hover:     var(--bg-3) !important;
+  --color-neutral-background-container-strong:    var(--bg-3) !important;
+  --color-neutral-background-container-strong-hover: var(--bg-3) !important;
+  --color-neutral-background-gilded-hover:        var(--bg-3) !important;
+  --color-neutral-background-highlighted-strong:  var(--bg-3) !important;
+  --color-neutral-background-selected:            var(--bg-3) !important;
+  --shreddit-content-background:                  var(--bg) !important;
+
+  /* text */
+  --color-neutral-content:          var(--ink) !important;
+  --color-neutral-content-strong:   var(--ink) !important;
+  --color-neutral-content-weak:     var(--soft) !important;
+  --color-neutral-content-disabled: var(--line-2) !important;
+
+  /* lines */
+  --color-neutral-border-weak:    var(--line) !important;
+  --color-neutral-border-divider: var(--line) !important;
+  --color-neutral-border:         var(--line-2) !important;
+  --color-neutral-border-medium:  var(--btn-line) !important;
+  --color-neutral-border-strong:  var(--ink) !important;
+
+  /* Reddit's grey ramp (1 strongest text ... 7 page) */
+  --color-tone-1: var(--ink) !important;
+  --color-tone-2: var(--soft) !important;
+  --color-tone-3: var(--muted) !important;
+  --color-tone-4: var(--line) !important;
+  --color-tone-5: var(--bg-2) !important;
+  --color-tone-6: var(--bg-2) !important;
+  --color-tone-7: var(--bg) !important;
+
+  /* links and buttons: ink; the accent colour only shows on hover */
+  --color-primary:                  var(--ink) !important;
+  --color-primary-plain:            var(--ink) !important;
+  --color-primary-visited:          var(--ink) !important;
+  --color-primary-plain-visited:    var(--ink) !important;
+  --color-primary-hover:            var(--link) !important;
+  --color-primary-plain-hover:      var(--link) !important;
+  --color-primary-plain-selected:   var(--ink) !important;
+  --color-primary-background:       var(--ink) !important;
+  --color-primary-background-hover: var(--soft) !important;
+  --color-primary-background-selected:    var(--soft) !important;
+  --color-primary-background-highlighted: var(--bg-2) !important;
+  --color-primary-border:           var(--btn-line) !important;
+  --color-primary-border-hover:     var(--ink) !important;
+  --color-primarynext-plain:        var(--ink) !important;
+  --color-primarynext-plain-hover:  var(--link) !important;
+  --color-primarynext-plain-visited:   var(--ink) !important;
+  --color-primarynext-plain-selected:  var(--ink) !important;
+  --color-primarynext-background:   var(--ink) !important;
+  --color-primarynext-background-hover: var(--soft) !important;
+  --color-primarynext-border:       var(--btn-line) !important;
+  --color-primarynext-border-hover: var(--ink) !important;
+  --color-secondary:                var(--ink) !important;
+  --color-secondary-plain:          var(--ink) !important;
+  --color-secondary-hover:          var(--ink) !important;
+  --color-secondary-plain-hover:    var(--ink) !important;
+  --color-secondary-weak:           var(--soft) !important;
+  --color-secondary-plain-weak:     var(--soft) !important;
+  --color-secondary-background:     var(--bg-2) !important;
+  --color-secondary-background-hover:    var(--bg-3) !important;
+  --color-secondary-background-selected: var(--bg-3) !important;
+
+  /* text on buttons: these switch with Reddit's own light/dark scheme, so they must follow ours
+     (this is what made the vote, comment and share pills unreadable on dark themes) */
+  --color-bordered-onBackground:           var(--ink) !important;
+  --color-plain-onBackground:              var(--ink) !important;
+  --color-secondary-onBackground:          var(--ink) !important;
+  --color-primary-onBackground:            var(--bg) !important;
+  --color-primary-onBackground-selected:   var(--bg) !important;
+  --color-primarynext-onBackground:        var(--bg) !important;
+  --color-inverted-secondary-onBackground: var(--bg) !important;
+  --color-plain-inverted-onBackground:     var(--bg) !important;
+
+  /* the "inverted" set (tooltips, toasts): the opposite of the page */
+  --color-inverted-neutral-background:       var(--ink) !important;
+  --color-inverted-neutral-background-hover: var(--soft) !important;
+  --color-inverted-neutral-border:           color-mix(in srgb, var(--bg) 20%, transparent) !important;
+  --color-inverted-neutral-content:          var(--bg-2) !important;
+  --color-inverted-neutral-content-strong:   var(--bg) !important;
+  --color-inverted-secondary-background:          color-mix(in srgb, var(--ink) 88%, var(--bg)) !important;
+  --color-inverted-secondary-background-hover:    color-mix(in srgb, var(--ink) 80%, var(--bg)) !important;
+  --color-inverted-secondary-background-selected: color-mix(in srgb, var(--ink) 72%, var(--bg)) !important;
+  --color-inverted-secondary-plain:       var(--bg) !important;
+  --color-inverted-secondary-plain-hover: var(--bg) !important;
+
+  /* hover, press, focus and disabled overlays */
+  --color-interactive-android-hover:       color-mix(in srgb, var(--ink) 4%, transparent) !important;
+  --color-interactive-android-focused:     color-mix(in srgb, var(--ink) 12%, transparent) !important;
+  --color-interactive-background-disabled: color-mix(in srgb, var(--ink) 5%, transparent) !important;
+  --color-interactive-content-disabled:    color-mix(in srgb, var(--ink) 25%, transparent) !important;
+  --color-interactive-pressed:             color-mix(in srgb, var(--ink) 15%, transparent) !important;
+  --color-interactive-focused:             var(--link) !important;
+  --color-inverted-interactive-background-disabled: color-mix(in srgb, var(--bg) 5%, transparent) !important;
+  --color-inverted-interactive-content-disabled:    color-mix(in srgb, var(--bg) 25%, transparent) !important;
+  --color-inverted-interactive-pressed:             color-mix(in srgb, var(--bg) 15%, transparent) !important;
+
+  /* toggle switches, page canvas, loading placeholders */
+  --color-primary-switchBackground:                 var(--line-2) !important;
+  --color-primary-switchBackground-hover:           var(--btn-line) !important;
+  --color-primary-switchBackground-selected:        var(--ink) !important;
+  --color-primary-switchBackground-selected-hover:  var(--soft) !important;
+  --color-ui-canvas:                                var(--bg) !important;
+  --color-shimmer-background:                       color-mix(in srgb, var(--ink) 3%, transparent) !important;
+
+  /* font */
+  --font-sans: var(--f-ui) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * 3. Base
+ * ------------------------------------------------------------------ */
+html { background: var(--bg); -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-ui);
+  font-optical-sizing: auto;
+  font-kerning: normal;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+body * { font-family: inherit; }
+/* Links Reddit leaves unstyled would otherwise get the browser's own blue (pale blue when the system is dark, even in our light
+   theme). :where() keeps the specificity at zero, so Reddit's own link colours (and the variables above) still win. */
+:where(a:any-link) { color: var(--ink); }
+:where(a:any-link):hover { color: var(--link); }
+::selection { background: color-mix(in srgb, var(--hue) 28%, transparent); }
+/* Keyboard focus ring, only on ordinary focusable elements. Not on Reddit's custom elements (the reply box, search box ...):
+   they host the real field inside, and a ring drawn around the host sits outside the field's own border with the wrong corners.
+   Those keep Reddit's own focus look, recoloured through --color-interactive-focused above. No forced corner radius either. */
+:is(a, button, input, select, textarea, summary, [role="button"]):focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+
+/* ------------------------------------------------------------------ *
+ * 4. Reading text: post bodies and comments. This is where the font setting shows.
+ *    (First pass for the font test; the real layout comes with the reading pages.)
+ * ------------------------------------------------------------------ */
+shreddit-post-text-body .md,
+shreddit-comment div[slot="comment"] .md,
+shreddit-comment div[slot="comment"].md {
+  font-family: var(--f-read);
+  font-size: var(--read-size);
+  line-height: var(--read-lh);
+}
+shreddit-post-text-body .md a,
+shreddit-comment div[slot="comment"] a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--line-2);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+shreddit-post-text-body .md a:hover,
+shreddit-comment div[slot="comment"] a:hover { color: var(--link); text-decoration-color: var(--link); }
+
+/* ------------------------------------------------------------------ *
+ * 5. Feed (home, popular, subreddit and profile lists)
+ *    One quiet row per post, separated by Reddit's own hairline. Hooks are Reddit's attributes and slots, not its
+ *    utility classes (those change). [view-type] is only there to out-rank Reddit's class-based padding and hover colour.
+ * ------------------------------------------------------------------ */
+shreddit-post[view-type] {
+  background: transparent;
+  border-radius: 0;
+  padding: 1.25rem 0;
+  margin: 0;
+}
+shreddit-post[view-type]:hover { background: transparent; }
+
+/* title: the thing you came to read */
+shreddit-post[view-type] a[slot="title"] {
+  font-size: 1.1875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  color: var(--ink);
+  text-decoration: none;
+}
+shreddit-post[view-type] a[slot="title"]:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 0.2em; }
+
+/* line above the title: community, time. Quiet, no icons, no Join buttons. */
+shreddit-post[view-type] [slot="credit-bar"] { font-size: 0.8125rem; color: var(--muted); min-height: 0; margin-bottom: 0.25rem; }
+shreddit-post[view-type] [slot="credit-bar"] a[data-testid="subreddit-name"] { font-size: 0.8125rem; font-weight: 600; color: var(--ink); }
+shreddit-post[view-type] [slot="credit-bar"] span[avatar],
+shreddit-post[view-type] [slot="credit-bar"] shreddit-join-button { display: none; }
+shreddit-post[view-type] [slot="credit-bar"] a[data-testid="subreddit-name"] > div { padding: 0; }
+
+/* link posts: the domain, quiet; text posts: the preview in the post font */
+shreddit-post[view-type] a.post-link { font-size: 0.8125rem; color: var(--muted); }
+shreddit-post[view-type] [slot="text-body"] {
+  font-family: var(--f-read);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--soft);
+}
+shreddit-post[view-type] [slot="thumbnail"] { border-radius: 4px; }
+
+/* ------------------------------------------------------------------ *
+ * 6. Post page: the post itself (title, line above it, text)
+ * ------------------------------------------------------------------ */
+shreddit-post[view-context="CommentsPage"] { background: transparent; }
+shreddit-post[view-context="CommentsPage"] h1[slot="title"] {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  color: var(--ink);
+}
+shreddit-post[view-context="CommentsPage"] shreddit-post-text-body { display: block; margin-top: 1rem; }
+#pdp-credit-bar { font-size: 0.8125rem; color: var(--muted); }
+#pdp-credit-bar span.avatar { display: none; }               /* community icon: no icon squares */
+#pdp-credit-bar a.subreddit-name { font-size: 0.8125rem; font-weight: 600; color: var(--ink); }
+
+/* Text inside posts and comments (Reddit calls this block .md): paragraph rhythm, quotes, code, lists. */
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) p { margin: 0 0 0.85em; }
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) p:last-child { margin-bottom: 0; }
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) blockquote {
+  margin: 0 0 0.85em;
+  padding: 0 0 0 1rem;
+  border-left: 2px solid var(--line-2);
+  color: var(--soft);
+  font-style: normal;
+}
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) ul,
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) ol { margin: 0 0 0.85em; padding-left: 1.5rem; }
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) li { margin: 0 0 0.25em; }
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) hr { border: 0; border-top: 1px solid var(--line); margin: 1.5em 0; }
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) code { background: var(--bg-2); border-radius: 3px; padding: 0.1em 0.3em; font-size: 0.9em; }
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) pre { background: var(--bg-2); border-radius: 4px; padding: 0.75rem 1rem; overflow-x: auto; }
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) pre code { background: none; padding: 0; }
+
+/* ------------------------------------------------------------------ *
+ * 7. Comments: author and time quiet, the text is the star. Avatars stay for now (they keep the thread lines aligned).
+ * ------------------------------------------------------------------ */
+shreddit-comment [slot="commentMeta"] .author-hovercard-trigger a { font-size: 1rem; font-weight: 600; color: var(--ink); }
+
+/* User flair (the little pill under the name): room above it, and more padding inside it. The pill's own colours are set by each community. */
+shreddit-comment [slot="commentMeta"] author-flair-event-handler { margin-top: 0.375rem; }
+shreddit-comment [slot="commentMeta"] author-flair-event-handler > span { padding: 0.1875rem 0.75rem; }
+
+/* Rhythm: a hairline and room between top-level comments; replies get room but no line (their thread line already separates them).
+   Margin, not padding, on replies, so Reddit's thread-line curve moves together with the avatar it points at. */
+shreddit-comment[depth="0"] { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
+shreddit-comment:not([depth="0"]) { margin-top: 1.5rem; }
+shreddit-comment [slot="commentMeta"] a faceplate-timeago { font-size: 0.8125rem; color: var(--muted); }
+shreddit-comment div[slot="comment"] { color: var(--ink); }
+
+/* ------------------------------------------------------------------ *
+ * 8. Header: no logo (the word Home instead, as in the AO3 style), a hairline, a quiet search box
+ * ------------------------------------------------------------------ */
+reddit-header-large header { border-bottom: 1px solid var(--line); box-shadow: none; }
+#reddit-logo > * { display: none; }
+#reddit-logo::after { content: "Home"; font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+reddit-search-large .search-input { border-radius: 6px; border-color: var(--line-2); background: var(--bg); box-shadow: none; }
+/* clutter in the header: the Advertise button and chat */
+advertise-button,
+reddit-chat-header-button,
+#header-action-item-chat-button-badge { display: none; }
+
+/* ------------------------------------------------------------------ *
+ * 9. Left menu and right sidebar: flat and quiet
+ * ------------------------------------------------------------------ */
+games-section-badge-controller,
+#games_section,
+#left-sidebar hr:has(+ games-section-badge-controller) { display: none; }     /* "Games on Reddit" */
+aside.subreddit-right-rail-community-info { background: transparent; border-radius: 0; }
+
+/* ------------------------------------------------------------------ *
+ * 10. Ads. All of them have explicit names. Hidden with display:none (!important, because Reddit sets display on them),
+ *     never removed from the page. In a feed each ad has its own hairline next to it; that one goes too, so no line is doubled.
+ * ------------------------------------------------------------------ */
+shreddit-ad-post,                 /* ad in a feed */
+shreddit-sidebar-ad,              /* ad in the right sidebar */
+shreddit-comments-page-ad,        /* ad between a post and its comments */
+shreddit-comment-tree-ads,        /* ads inside a comment thread */
+shreddit-comment-tree-ad,
+.promotedlink { display: none !important; }
+shreddit-ad-post + hr { display: none !important; }
+
+/* BEGIN generated by preview/gen-pairs.py */
+/* Reddit's own light/dark colour pairs (status colours, tags, upvote/downvote, shadows ...), picked by OUR theme.
+   Regenerate after Reddit changes its styles; do not edit by hand. */
+:root:root:root:root,
+:root:root:root:root .theme-beta,
+:root:root:root:root .theme-rpl,
+:root:root:root:root .sidebar-grid,
+:root:root:root:root .grid-container.grid,
+:root:root:root:root .wiki-pilot-communities,
+:root:root:root:root #pdp-credit-bar,
+:root:root:root:root #pdp-sticky-credit-bar,
+:root:root:root:root subreddit-header-card {
+  --color-ads-plat-info-background-highlighted: color-mix(in srgb, #051E2B calc(var(--dark) * 100%), #E6F3FC) !important;
+  --color-ads-plat-info-plain: color-mix(in srgb, #029DD5 calc(var(--dark) * 100%), #01668D) !important;
+  --color-adsplat-accent-background-highlighted: color-mix(in srgb, #160E5B calc(var(--dark) * 100%), #F2EFFC) !important;
+  --color-adsplat-accent-plain: color-mix(in srgb, #9580FF calc(var(--dark) * 100%), #523DFF) !important;
+  --color-ai-background-weaker: color-mix(in srgb, #00382B calc(var(--dark) * 100%), #E7FDF5) !important;
+  --color-ai-plain: color-mix(in srgb, #01A484 calc(var(--dark) * 100%), #006C56) !important;
+  --color-ai-plain-hover: color-mix(in srgb, #00C29D calc(var(--dark) * 100%), #015140) !important;
+  --color-caution-background: color-mix(in srgb, #D8A100 calc(var(--dark) * 100%), #FFBF0B) !important;
+  --color-caution-background-highlighted: color-mix(in srgb, #231A03 calc(var(--dark) * 100%), #FFF3C0) !important;
+  --color-caution-background-hover: color-mix(in srgb, #FFBF0B calc(var(--dark) * 100%), #D8A100) !important;
+  --color-caution-plain: color-mix(in srgb, #FFBF0B calc(var(--dark) * 100%), #785800) !important;
+  --color-caution-plain-hover: color-mix(in srgb, #FFE284 calc(var(--dark) * 100%), #5B4200) !important;
+  --color-danger-background: color-mix(in srgb, #BC0117 calc(var(--dark) * 100%), #EB001F) !important;
+  --color-danger-background-disabled: color-mix(in srgb, #340F05 calc(var(--dark) * 100%), #FDB3A4) !important;
+  --color-danger-background-highlighted: color-mix(in srgb, #340F05 calc(var(--dark) * 100%), #FCEEEA) !important;
+  --color-danger-background-hover: color-mix(in srgb, #EB001F calc(var(--dark) * 100%), #BC0117) !important;
+  --color-danger-background-weaker: color-mix(in srgb, #650405 calc(var(--dark) * 100%), #FBDBD4) !important;
+  --color-danger-content: color-mix(in srgb, #FF4F40 calc(var(--dark) * 100%), #BC0117) !important;
+  --color-danger-content-hover: color-mix(in srgb, #FF8773 calc(var(--dark) * 100%), #90000F) !important;
+  --color-danger-plain: color-mix(in srgb, #FF8773 calc(var(--dark) * 100%), #BC0117) !important;
+  --color-danger-plain-hover: color-mix(in srgb, #FDB3A4 calc(var(--dark) * 100%), #90000F) !important;
+  --color-downvote-content: color-mix(in srgb, #9580FF calc(var(--dark) * 100%), #523DFF) !important;
+  --color-downvote-disabled: color-mix(in srgb, #9580FF4d calc(var(--dark) * 100%), #523DFF4d) !important;
+  --color-downvote-plain: color-mix(in srgb, #9580FF calc(var(--dark) * 100%), #523DFF) !important;
+  --color-downvote-plain-disabled: color-mix(in srgb, rgba(149, 128, 255, 0.3) calc(var(--dark) * 100%), rgba(82, 61, 255, 0.3)) !important;
+  --color-elevation-large1: color-mix(in srgb, #0000007F calc(var(--dark) * 100%), #0000003F) !important;
+  --color-elevation-large2: color-mix(in srgb, #00000033 calc(var(--dark) * 100%), #00000026) !important;
+  --color-elevation-medium1: color-mix(in srgb, #0000007F calc(var(--dark) * 100%), #0000003F) !important;
+  --color-elevation-medium2: color-mix(in srgb, #00000033 calc(var(--dark) * 100%), #00000019) !important;
+  --color-elevation-small: color-mix(in srgb, #00000054 calc(var(--dark) * 100%), #00000026) !important;
+  --color-elevation-xsmall: color-mix(in srgb, #000000AA calc(var(--dark) * 100%), #0000003F) !important;
+  --color-favorite: color-mix(in srgb, #B78800 calc(var(--dark) * 100%), #977000) !important;
+  --color-global-admin-content: color-mix(in srgb, #FF895D calc(var(--dark) * 100%), #AE2C00) !important;
+  --color-global-gold: color-mix(in srgb, #D8A100 calc(var(--dark) * 100%), #B78800) !important;
+  --color-global-incognito: color-mix(in srgb, #00C29D calc(var(--dark) * 100%), #01876D) !important;
+  --color-global-moderator-content: color-mix(in srgb, #00C61C calc(var(--dark) * 100%), #016E0B) !important;
+  --color-global-nsfw-content: color-mix(in srgb, #FF7ECA calc(var(--dark) * 100%), #B2007F) !important;
+  --color-global-stars: color-mix(in srgb, #D8A100 calc(var(--dark) * 100%), #977000) !important;
+  --color-opacity-50: color-mix(in srgb, #F2F2F280 calc(var(--dark) * 100%), #00000080) !important;
+  --color-pizzaRed: color-mix(in srgb, #c62828 calc(var(--dark) * 100%), #ef5350) !important;
+  --color-success-background: color-mix(in srgb, #016E0B calc(var(--dark) * 100%), #008A10) !important;
+  --color-success-background-highlighted: color-mix(in srgb, #0D2005 calc(var(--dark) * 100%), #DDF8D7) !important;
+  --color-success-background-hover: color-mix(in srgb, #008A10 calc(var(--dark) * 100%), #016E0B) !important;
+  --color-success-content: color-mix(in srgb, #01A816 calc(var(--dark) * 100%), #016E0B) !important;
+  --color-success-hover: color-mix(in srgb, #00C61C calc(var(--dark) * 100%), #005306) !important;
+  --color-success-plain: color-mix(in srgb, #00C61C calc(var(--dark) * 100%), #016E0B) !important;
+  --color-success-plain-hover: color-mix(in srgb, #58E15B calc(var(--dark) * 100%), #005306) !important;
+  --color-tags-admin-background: color-mix(in srgb, #591B02 calc(var(--dark) * 100%), #FCEEE8) !important;
+  --color-tags-admin-content: color-mix(in srgb, #FF895D calc(var(--dark) * 100%), #AE2C00) !important;
+  --color-tags-admin-content-weaker: color-mix(in srgb, #FF895D calc(var(--dark) * 100%), #D93900) !important;
+  --color-tags-app-background: color-mix(in srgb, #2A3236 calc(var(--dark) * 100%), #EEF1F3) !important;
+  --color-tags-app-content: color-mix(in srgb, #B7CAD4 calc(var(--dark) * 100%), #333D42) !important;
+  --color-tags-app-content-weaker: color-mix(in srgb, #B7CAD4 calc(var(--dark) * 100%), #333D42) !important;
+  --color-tags-author-background: color-mix(in srgb, #0A2F6C calc(var(--dark) * 100%), #EEF0FB) !important;
+  --color-tags-author-content: color-mix(in srgb, #90A9FD calc(var(--dark) * 100%), #115BCA) !important;
+  --color-tags-author-content-weaker: color-mix(in srgb, #90A9FD calc(var(--dark) * 100%), #1870F4) !important;
+  --color-tags-brand-background: color-mix(in srgb, #591B02 calc(var(--dark) * 100%), #FCEEE8) !important;
+  --color-tags-brand-content: color-mix(in srgb, #FF895D calc(var(--dark) * 100%), #AE2C00) !important;
+  --color-tags-brand-content-weaker: color-mix(in srgb, #FF895D calc(var(--dark) * 100%), #D93900) !important;
+  --color-tags-caution-background: color-mix(in srgb, #3F2D00 calc(var(--dark) * 100%), #FFF3C0) !important;
+  --color-tags-caution-content: color-mix(in srgb, #FFBF0B calc(var(--dark) * 100%), #5B4200) !important;
+  --color-tags-caution-content-weaker: color-mix(in srgb, #FFBF0B calc(var(--dark) * 100%), #977000) !important;
+  --color-tags-danger-background: color-mix(in srgb, #650405 calc(var(--dark) * 100%), #FCEEEA) !important;
+  --color-tags-danger-content: color-mix(in srgb, #FF8773 calc(var(--dark) * 100%), #BC0117) !important;
+  --color-tags-danger-content-weaker: color-mix(in srgb, #FF8773 calc(var(--dark) * 100%), #EB001F) !important;
+  --color-tags-moderator-background: color-mix(in srgb, #033902 calc(var(--dark) * 100%), #DDF8D7) !important;
+  --color-tags-moderator-content: color-mix(in srgb, #00C61C calc(var(--dark) * 100%), #016E0B) !important;
+  --color-tags-moderator-content-weaker: color-mix(in srgb, #00C61C calc(var(--dark) * 100%), #008A10) !important;
+  --color-tags-neutral-background: color-mix(in srgb, #2A3236 calc(var(--dark) * 100%), #EEF1F3) !important;
+  --color-tags-neutral-content: color-mix(in srgb, #B7CAD4 calc(var(--dark) * 100%), #333D42) !important;
+  --color-tags-neutral-content-weaker: color-mix(in srgb, #B7CAD4 calc(var(--dark) * 100%), #333D42) !important;
+  --color-tags-nsfw-background: color-mix(in srgb, #5F0443 calc(var(--dark) * 100%), #FCEDF4) !important;
+  --color-tags-nsfw-content: color-mix(in srgb, #FF7ECA calc(var(--dark) * 100%), #B2007F) !important;
+  --color-tags-nsfw-content-weaker: color-mix(in srgb, #FF7ECA calc(var(--dark) * 100%), #DE019F) !important;
+  --color-tags-success-background: color-mix(in srgb, #033902 calc(var(--dark) * 100%), #DDF8D7) !important;
+  --color-tags-success-content: color-mix(in srgb, #00C61C calc(var(--dark) * 100%), #016E0B) !important;
+  --color-tags-success-content-weaker: color-mix(in srgb, #00C61C calc(var(--dark) * 100%), #008A10) !important;
+  --color-tags-verified-background: color-mix(in srgb, #2A3236 calc(var(--dark) * 100%), #EEF1F3) !important;
+  --color-tags-verified-content: color-mix(in srgb, #B7CAD4 calc(var(--dark) * 100%), #333D42) !important;
+  --color-tags-verified-content-weaker: color-mix(in srgb, #B7CAD4 calc(var(--dark) * 100%), #333D42) !important;
+  --color-transparent-background-hover: color-mix(in srgb, #6677801a calc(var(--dark) * 100%), #7487911a) !important;
+  --color-upvote-content: color-mix(in srgb, #FF4500 calc(var(--dark) * 100%), #AE2C00) !important;
+  --color-upvote-disabled: color-mix(in srgb, #FF45004d calc(var(--dark) * 100%), #AE2C004d) !important;
+  --color-upvote-plain: color-mix(in srgb, #FF895D calc(var(--dark) * 100%), #AE2C00) !important;
+  --color-upvote-plain-disabled: color-mix(in srgb, rgba(255, 137, 93, 0.3) calc(var(--dark) * 100%), rgba(174, 44, 0, 0.3)) !important;
+  --color-warning-background-hover: color-mix(in srgb, #D8A100 calc(var(--dark) * 100%), #977000) !important;
+  --color-warning-content: color-mix(in srgb, #B78800 calc(var(--dark) * 100%), #785800) !important;
+  --color-warning-content-hover: color-mix(in srgb, #D8A100 calc(var(--dark) * 100%), #5B4200) !important;
+}
+/* END generated */
+
+}

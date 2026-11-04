@@ -14,7 +14,9 @@
 @var color  rn-accent       "Accent colour" #2f54eb
 ==/UserStyle== */
 
-@import url("https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,300..700;1,300..700&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap");
+/* Only Instrument Sans is loaded (one font for the interface and for posts and comments). The two font settings stay, so any
+   font installed on your computer can be typed into them; a web font would need its own @import line here. */
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap");
 
 /* New Reddit only (www.reddit.com). old.reddit.com is deliberately not matched. */
 @-moz-document url-prefix("https://www.reddit.com/") {
@@ -44,11 +46,10 @@
 
   --bg:     color-mix(in srgb, #f7f0e8 calc(var(--paper) * 100%), color-mix(in srgb, #272e3d calc(var(--slate) * 100%), color-mix(in srgb, #111113 calc(var(--dark) * 100%), #ffffff)));
   --bg-2:   color-mix(in srgb, #ede3d3 calc(var(--paper) * 100%), color-mix(in srgb, #2f3748 calc(var(--slate) * 100%), color-mix(in srgb, #19191c calc(var(--dark) * 100%), #f6f6f4)));
-  /* one step further from the page than --bg-2: hovers and selected rows */
-  --bg-3:   color-mix(in srgb, var(--bg-2) 92%, var(--ink));
-  /* the highlight Reddit puts on a comment you were linked to: as before on the dark themes, but only a touch deeper than --bg-2 on the
-     light themes, where --bg-3 is too heavy for something that covers a whole comment */
-  --hl:     color-mix(in srgb, var(--bg-2) calc(92% + (1 - var(--dark)) * 5%), var(--ink));
+  /* one step further from the page than --bg-2: hovers, selected rows (unread notifications) and the highlight on a comment you were
+     linked to. Deeper on the dark themes, only a touch deeper than --bg-2 on the light ones, where a full step is too heavy. */
+  --bg-3:   color-mix(in srgb, var(--bg-2) calc(92% + (1 - var(--dark)) * 5%), var(--ink));
+  --hl:     var(--bg-3);
   --ink:    color-mix(in srgb, #2b2622 calc(var(--paper) * 100%), color-mix(in srgb, #e6e9ef calc(var(--slate) * 100%), color-mix(in srgb, #e9e9ea calc(var(--dark) * 100%), #17171a)));
   --muted:  color-mix(in srgb, #6b6054 calc(var(--paper) * 100%), color-mix(in srgb, #aeb6c6 calc(var(--slate) * 100%), color-mix(in srgb, #9b9ba3 calc(var(--dark) * 100%), #6b6b73)));
   /* between --muted and --ink in light mode (a bit more contrast for small text); same as --muted in dark */
@@ -61,6 +62,8 @@
   /* OP and moderator colours: Reddit's own tag blue and green (dark values on the dark themes, deeper ones on the light themes) */
   --op:     color-mix(in srgb, #90A9FD calc(var(--dark) * 100%), #115BCA);
   --mod:    color-mix(in srgb, #00C61C calc(var(--dark) * 100%), #016E0B);
+  /* underline of links in running text: the hairline grey on the light themes, a stronger grey on dark and slate where the hairline vanishes */
+  --ul:     color-mix(in srgb, color-mix(in srgb, var(--muted) 70%, var(--line-2)) calc(var(--dark) * 100%), var(--line-2));
 }
 @media (prefers-color-scheme: dark) {
   :root { --sys: 1; }
@@ -233,7 +236,8 @@ body * { font-family: inherit; }
  * ------------------------------------------------------------------ */
 shreddit-post-text-body .md,
 shreddit-comment div[slot="comment"] .md,
-shreddit-comment div[slot="comment"].md {
+shreddit-comment div[slot="comment"].md,
+shreddit-profile-comment .md {
   font-family: var(--f-read);
   font-size: var(--read-size);
   line-height: var(--read-lh);
@@ -242,7 +246,7 @@ shreddit-post-text-body .md a,
 shreddit-comment div[slot="comment"] a {
   color: var(--ink);
   text-decoration: underline;
-  text-decoration-color: var(--line-2);
+  text-decoration-color: var(--ul);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
 }
@@ -264,7 +268,7 @@ shreddit-post[view-type]:hover { background: transparent; }
 
 /* title: the thing you came to read */
 shreddit-post[view-type] a[slot="title"] {
-  font-size: 1.1875rem;
+  font-size: 1.375rem;
   font-weight: 600;
   line-height: 1.3;
   letter-spacing: -0.01em;
@@ -275,8 +279,9 @@ shreddit-post[view-type] a[slot="title"] {
 shreddit-post[view-type] a[slot="title"]:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 0.2em; }
 
 /* line above the title: community, time. Quiet, no icons, no Join buttons. */
-shreddit-post[view-type] [slot="credit-bar"] { font-size: 0.8125rem; color: var(--muted); min-height: 0; margin-bottom: 0.25rem; }
-shreddit-post[view-type] [slot="credit-bar"] a[data-testid="subreddit-name"] { font-size: 0.8125rem; font-weight: 600; color: var(--ink); }
+shreddit-post[view-type] [slot="credit-bar"] { font-size: 0.875rem; color: var(--muted); min-height: 0; margin-bottom: 0.25rem; }
+shreddit-post[view-type] [slot="credit-bar"] :is(span, faceplate-timeago, time) { font-size: inherit; }   /* Reddit puts its own 12px class on the inner spans */
+shreddit-post[view-type] [slot="credit-bar"] faceplate-hovercard a { font-size: 1rem; font-weight: 600; color: var(--ink); }   /* community or user name */
 shreddit-post[view-type] [slot="credit-bar"] span[avatar],
 shreddit-post[view-type] [slot="credit-bar"] shreddit-join-button { display: none; }
 shreddit-post[view-type] [slot="credit-bar"] a[data-testid="subreddit-name"] > div { padding: 0; }
@@ -289,6 +294,30 @@ shreddit-post[view-type] [slot="text-body"] {
   line-height: 1.5;
   color: var(--soft);
 }
+/* links inside a text preview: the same quiet underline as in posts and comments, whatever state the link is in. Not the wrapper link
+   (a[slot=text-body]) that Reddit puts around the whole preview. */
+shreddit-post[view-type] [slot="text-body"] a:not([slot="text-body"]):is(:link, :visited) {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--ul);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+shreddit-post[view-type] [slot="text-body"] a:not([slot="text-body"]):is(:link, :visited):hover { color: var(--link); text-decoration-color: var(--link); }
+/* The original post embedded in a repost (a card inside the feed row): same treatment as a feed row, one step smaller. */
+shreddit-post[view-type] .crosspost-credit-bar { font-size: 0.875rem; color: var(--muted); }
+shreddit-post[view-type] .crosspost-credit-bar :is(span, faceplate-timeago, time) { font-size: inherit; }
+shreddit-post[view-type] .crosspost-credit-bar a { font-size: 1rem; font-weight: 600; color: var(--ink); }
+shreddit-post[view-type] .crosspost-title a:is(:link, :visited) {
+  font-size: 1.125rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; text-wrap: balance; color: var(--ink); text-decoration: none;
+}
+shreddit-post[view-type] .feed-card-text-preview { font-family: var(--f-read); font-size: 0.9375rem; line-height: 1.5; color: var(--soft); }
+shreddit-post[view-type] .feed-card-text-preview a:is(:link, :visited) {
+  color: var(--ink); text-decoration: underline; text-decoration-color: var(--ul); text-decoration-thickness: 1px; text-underline-offset: 0.2em;
+}
+shreddit-post[view-type] .feed-card-text-preview a:is(:link, :visited):hover { color: var(--link); text-decoration-color: var(--link); }
+shreddit-post[view-type] div:has(> .feed-card-text-preview) + div { font-size: 0.875rem; }     /* the "2 upvotes" line under an embedded post */
+shreddit-post[view-type] div:has(> .feed-card-text-preview) + div * { font-size: inherit; }
 shreddit-post[view-type] [slot="thumbnail"] { border-radius: 4px; }
 
 /* ------------------------------------------------------------------ *
@@ -310,22 +339,22 @@ shreddit-post[view-context="CommentsPage"] shreddit-post-text-body { display: bl
 #pdp-credit-bar a.subreddit-name { font-size: 0.8125rem; font-weight: 600; color: var(--ink); }
 
 /* Text inside posts and comments (Reddit calls this block .md): paragraph rhythm, quotes, code, lists. */
-:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) p { margin: 0 0 0.85em; }
-:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) p:last-child { margin-bottom: 0; }
-:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) blockquote {
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"], .wiki-content, shreddit-profile-comment .md) p { margin: 0 0 0.85em; }
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"], .wiki-content, shreddit-profile-comment .md) p:last-child { margin-bottom: 0; }
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"], .wiki-content, shreddit-profile-comment .md) blockquote {
   margin: 0 0 0.85em;
   padding: 0 0 0 1rem;
   border-left: 2px solid var(--line-2);
   color: var(--soft);
   font-style: normal;
 }
-:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) ul,
-:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) ol { margin: 0 0 0.85em; padding-left: 1.5rem; }
-:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) li { margin: 0 0 0.25em; }
-:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) hr { border: 0; border-top: 1px solid var(--line); margin: 1.5em 0; }
-:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) code { background: var(--bg-2); border-radius: 3px; padding: 0.1em 0.3em; font-size: 0.9em; }
-:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) pre { background: var(--bg-2); border-radius: 4px; padding: 0.75rem 1rem; overflow-x: auto; }
-:is(shreddit-post-text-body, shreddit-comment div[slot="comment"]) pre code { background: none; padding: 0; }
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"], .wiki-content, shreddit-profile-comment .md) ul,
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"], .wiki-content, shreddit-profile-comment .md) ol { margin: 0 0 0.85em; padding-left: 1.5rem; }
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"], .wiki-content, shreddit-profile-comment .md) li { margin: 0 0 0.25em; }
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"], .wiki-content, shreddit-profile-comment .md) hr { border: 0; border-top: 1px solid var(--line); margin: 1.5em 0; }
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"], .wiki-content, shreddit-profile-comment .md) code { background: var(--bg-2); border-radius: 3px; padding: 0.1em 0.3em; font-size: 0.9em; }
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"], .wiki-content, shreddit-profile-comment .md) pre { background: var(--bg-2); border-radius: 4px; padding: 0.75rem 1rem; overflow-x: auto; }
+:is(shreddit-post-text-body, shreddit-comment div[slot="comment"], .wiki-content, shreddit-profile-comment .md) pre code { background: none; padding: 0; }
 
 /* ------------------------------------------------------------------ *
  * 7. Comments: author and time quiet, the text is the star. Avatars stay for now (they keep the thread lines aligned).
@@ -429,6 +458,57 @@ devvit-games-drawer-item,                      /* the rest of "Games on Reddit" 
 games-section-badge-wrapper { display: none !important; }
 /* Kept on purpose: the chat button and the chat panel. Not reachable from a page style, so not listed here: the "trending today"
    list in the search box, the Premium upsell inside post menus. They live inside Reddit's shadow DOM. */
+
+/* ------------------------------------------------------------------ *
+ * 12. Wiki pages (mild pass): the same type as posts. Paragraph rhythm, quotes, lists and code come from the shared text rules
+ *     in section 6 (the wiki container is added to them); here only the font, headings, links and tables.
+ * ------------------------------------------------------------------ */
+.wiki-content { font-family: var(--f-read); font-size: var(--read-size); line-height: var(--read-lh); color: var(--ink); }
+.wiki-content :is(h1, h2, h3, h4) { font-family: var(--f-ui); font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; text-wrap: balance; color: var(--ink); }
+.wiki-content h1 { font-size: 1.5rem; margin: 2.25rem 0 0.75rem; }
+.wiki-content h2 { font-size: 1.25rem; margin: 1.75rem 0 0.5rem; }
+.wiki-content h3, .wiki-content h4 { font-size: 1.0625rem; margin: 1.5rem 0 0.5rem; }
+.wiki-content a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--ul); text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+.wiki-content a:hover { color: var(--link); text-decoration-color: var(--link); }
+.wiki-content table { border-collapse: collapse; width: 100%; margin: 0 0 1em; }
+.wiki-content :is(th, td) { border: 1px solid var(--line); padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
+.wiki-content th { font-family: var(--f-ui); font-weight: 600; background: var(--bg-2); }
+
+/* ------------------------------------------------------------------ *
+ * 13. Profile pages: your comments list. Each item is a shreddit-profile-comment: a header (community, post title, then
+ *     "name commented ... ago"), the comment text, the action row and a "views / See More Insights" line. Reddit sets the
+ *     header and the last line at 12px; they get the same sizes as comments, and the text uses the post font and size.
+ *     Structure, not Reddit's utility classes: item > hover wrapper > padded wrapper > [header, text, ..., stats].
+ * ------------------------------------------------------------------ */
+shreddit-profile-comment > div > div > div:first-child { font-size: 0.875rem; line-height: 1.5; }
+shreddit-profile-comment > div > div > div:first-child a { color: var(--ink); font-size: inherit; }   /* names carry their own 12px class */
+shreddit-profile-comment > div > div > div:first-child h2 { font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; }
+shreddit-profile-comment > div > div > div:first-child h2 a { font-weight: inherit; }
+shreddit-profile-comment > div > div > div:last-child { font-size: 0.875rem; }
+shreddit-profile-comment > div > div > div:last-child * { font-size: inherit; }
+
+/* ------------------------------------------------------------------ *
+ * 14. Notifications (inbox page): room between rows and inside them, and rounded rows. The unread rows (`selected` attribute) take
+ *     their grey from --bg-3 above, now lighter on light themes. The rounding is set on the row element itself; if Reddit paints the
+ *     grey on something inside the row, the corners will not show and a small change is needed (tell me).
+ * ------------------------------------------------------------------ */
+notification-item { display: block; margin-block: 0.25rem; }
+rpl-inbox-row { border-radius: 0.5rem; padding: 0.625rem 0.5rem; }
+notification-item [data-testid="title"] { margin-bottom: 0.25rem; }
+notification-item [data-testid="body"] { line-height: 1.5; }
+
+/* ------------------------------------------------------------------ *
+ * 15. The link popover in the comment editor (the little card with the link, a pencil and a bin). Its link is a plain <a> inside
+ *     Reddit's shadow DOM with no `part` name and no colour of its own, so the browser's default link blue shows: a dark blue that
+ *     cannot be read on the dark themes. We cannot style that link, but the default colour follows the element's `color-scheme`
+ *     (dark blue for light, pale blue for dark). color-scheme takes a keyword, not a number, so our own theme (--dark) is turned into a
+ *     query: --dark is registered as a number so a style query can test it. Browsers without style queries keep the old look.
+ * ------------------------------------------------------------------ */
+@property --dark { syntax: "<number>"; inherits: true; initial-value: 0; }
+rte-link-tooltip, rte-link-modal, rte-link-action-modal { color-scheme: light; }
+@container style(--dark: 1) {
+  rte-link-tooltip, rte-link-modal, rte-link-action-modal { color-scheme: dark; }
+}
 
 /* BEGIN generated by preview/gen-pairs.py */
 /* Reddit's own light/dark colour pairs (status colours, tags, upvote/downvote, shadows ...), picked by OUR theme.

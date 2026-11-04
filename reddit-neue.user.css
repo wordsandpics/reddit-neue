@@ -46,6 +46,9 @@
   --bg-2:   color-mix(in srgb, #ede3d3 calc(var(--paper) * 100%), color-mix(in srgb, #2f3748 calc(var(--slate) * 100%), color-mix(in srgb, #19191c calc(var(--dark) * 100%), #f6f6f4)));
   /* one step further from the page than --bg-2: hovers and selected rows */
   --bg-3:   color-mix(in srgb, var(--bg-2) 92%, var(--ink));
+  /* the highlight Reddit puts on a comment you were linked to: as before on the dark themes, but only a touch deeper than --bg-2 on the
+     light themes, where --bg-3 is too heavy for something that covers a whole comment */
+  --hl:     color-mix(in srgb, var(--bg-2) calc(92% + (1 - var(--dark)) * 5%), var(--ink));
   --ink:    color-mix(in srgb, #2b2622 calc(var(--paper) * 100%), color-mix(in srgb, #e6e9ef calc(var(--slate) * 100%), color-mix(in srgb, #e9e9ea calc(var(--dark) * 100%), #17171a)));
   --muted:  color-mix(in srgb, #6b6054 calc(var(--paper) * 100%), color-mix(in srgb, #aeb6c6 calc(var(--slate) * 100%), color-mix(in srgb, #9b9ba3 calc(var(--dark) * 100%), #6b6b73)));
   /* between --muted and --ink in light mode (a bit more contrast for small text); same as --muted in dark */
@@ -96,7 +99,7 @@
   --color-neutral-background-container-strong:    var(--bg-3) !important;
   --color-neutral-background-container-strong-hover: var(--bg-3) !important;
   --color-neutral-background-gilded-hover:        var(--bg-3) !important;
-  --color-neutral-background-highlighted-strong:  var(--bg-3) !important;
+  --color-neutral-background-highlighted-strong:  var(--hl) !important;
   --color-neutral-background-selected:            var(--bg-3) !important;
   --shreddit-content-background:                  var(--bg) !important;
 
@@ -347,21 +350,36 @@ shreddit-comment div[slot="comment"] { color: var(--ink); }
 
 /* OP and moderator comments (variation of "name colour + faint tint"):
    - the name takes Reddit's own tag colours (blue for the thread author, green for moderators; moderator wins if both);
-   - a very faint wash of the same colour sits behind the comment text only (not behind replies), pulled out with negative
-     margins so the text stays aligned with every other comment. No extra line: the thread line is already there.
+   - a very faint wash of the same colour sits behind the whole comment block (not behind replies). No extra line: the thread
+     line is already there.
    - Reddit draws its own small OP / MOD badge inside shadow DOM, in its light-theme colour on dark themes. The badge colours
      are set on the badge itself so they follow our theme too. */
-shreddit-comment[is-op] [slot="commentMeta"] .author-hovercard-trigger a,
-shreddit-comment[is-user-op] [slot="commentMeta"] .author-hovercard-trigger a { color: var(--op); }
-shreddit-comment[is-mod-distinguished] [slot="commentMeta"] .author-hovercard-trigger a { color: var(--mod); }
-shreddit-comment[is-op] > details > div > div > div[slot="comment"],
-shreddit-comment[is-user-op] > details > div > div > div[slot="comment"] {
-  background: color-mix(in srgb, var(--op) 6%, transparent);
-  border-radius: 6px; padding: 0.5rem 0.75rem; margin: 0 -0.75rem;
+/* "> details > summary" keeps this on the comment's own name line: replies sit inside their parent comment, so without it
+   every reply under an OP or mod comment would take the colour too. */
+shreddit-comment[is-op] > details > summary [slot="commentMeta"] .author-hovercard-trigger a,
+shreddit-comment[is-user-op] > details > summary [slot="commentMeta"] .author-hovercard-trigger a { color: var(--op); }
+shreddit-comment[is-mod-distinguished] > details > summary [slot="commentMeta"] .author-hovercard-trigger a { color: var(--mod); }
+/* The tint is one rectangle around the comment's own name line, text and action row (the avatar sits to its left, like a bubble),
+   using the same three rows Reddit itself colours when you arrive from a notification. Reddit's own highlight wins: a comment
+   that is currently linked to (`is-highlighted`) gets no tint of ours, so the two never stack. Collapsed comments get none.
+   Replies are separate elements and stay clear. Each row is pulled 0.5rem to the left and padded by the same amount, so the
+   text stays exactly where it is in every other comment. (Reddit's thin left-gutter highlight layers are not used: they do not
+   line up with the text column outside Reddit's own highlight state.) */
+shreddit-comment:is([is-op], [is-user-op]):not([is-highlighted]) { --tint: color-mix(in srgb, var(--op) 6%, transparent); }
+shreddit-comment[is-mod-distinguished]:not([is-highlighted]) { --tint: color-mix(in srgb, var(--mod) 6%, transparent); }
+:is(shreddit-comment:is([is-op], [is-user-op], [is-mod-distinguished]):not([is-highlighted])) > details[open] > summary > [slot="commentMeta"],
+:is(shreddit-comment:is([is-op], [is-user-op], [is-mod-distinguished]):not([is-highlighted])) > details[open] > div > div:has(> div[slot="comment"]),
+:is(shreddit-comment:is([is-op], [is-user-op], [is-mod-distinguished]):not([is-highlighted])) > details[open] > div > div:has(> [slot="actionRow"]) {
+  background-color: var(--tint);
+  margin-inline-start: -0.5rem;
+  padding-inline-end: 0.5rem;
 }
-shreddit-comment[is-mod-distinguished] > details > div > div > div[slot="comment"] {
-  background: color-mix(in srgb, var(--mod) 6%, transparent);
-  border-radius: 6px; padding: 0.5rem 0.75rem; margin: 0 -0.75rem;
+:is(shreddit-comment:is([is-op], [is-user-op], [is-mod-distinguished]):not([is-highlighted])) > details[open] > summary > [slot="commentMeta"] {
+  padding-inline-start: 0.75rem; padding-top: 0.25rem; border-start-start-radius: 0.5rem; border-start-end-radius: 0.5rem;
+}
+:is(shreddit-comment:is([is-op], [is-user-op], [is-mod-distinguished]):not([is-highlighted])) > details[open] > div > div:has(> div[slot="comment"]) { padding-inline-start: 0.5rem; }
+:is(shreddit-comment:is([is-op], [is-user-op], [is-mod-distinguished]):not([is-highlighted])) > details[open] > div > div:has(> [slot="actionRow"]) {
+  padding-inline-start: 0.5rem; border-end-start-radius: 0.5rem; border-end-end-radius: 0.5rem;
 }
 shreddit-comment-badges,
 shreddit-distinguished-post-tags {
@@ -379,10 +397,8 @@ reddit-header-large header { border-bottom: 1px solid var(--line); box-shadow: n
 #reddit-logo > * { display: none; }
 #reddit-logo::after { content: "Home"; font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
 reddit-search-large .search-input { border-radius: 6px; border-color: var(--line-2); background: var(--bg); box-shadow: none; }
-/* clutter in the header: the Advertise button and chat */
-advertise-button,
-reddit-chat-header-button,
-#header-action-item-chat-button-badge { display: none; }
+/* clutter in the header: the Advertise button (the chat button is kept) */
+advertise-button { display: none; }
 
 /* ------------------------------------------------------------------ *
  * 9. Left menu and right sidebar: flat and quiet
@@ -403,6 +419,16 @@ shreddit-comment-tree-ads,        /* ads inside a comment thread */
 shreddit-comment-tree-ad,
 .promotedlink { display: none !important; }
 shreddit-ad-post + hr { display: none !important; }
+
+/* ------------------------------------------------------------------ *
+ * 11. Other clutter (decided per element; hidden with display:none, never removed). To bring one back, delete its line.
+ * ------------------------------------------------------------------ */
+award-button,                                  /* award buttons on comments */
+achievements-entrypoint,                       /* "community achievements" block in the sidebar */
+devvit-games-drawer-item,                      /* the rest of "Games on Reddit" (the block itself is hidden in section 9) */
+games-section-badge-wrapper { display: none !important; }
+/* Kept on purpose: the chat button and the chat panel. Not reachable from a page style, so not listed here: the "trending today"
+   list in the search box, the Premium upsell inside post menus. They live inside Reddit's shadow DOM. */
 
 /* BEGIN generated by preview/gen-pairs.py */
 /* Reddit's own light/dark colour pairs (status colours, tags, upvote/downvote, shadows ...), picked by OUR theme.

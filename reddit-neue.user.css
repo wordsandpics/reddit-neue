@@ -55,6 +55,9 @@
   /* outline of buttons: a step darker than --line-2 on the light themes */
   --btn-line: color-mix(in srgb, #a9987b calc(var(--paper) * 100%), color-mix(in srgb, #4b556b calc(var(--slate) * 100%), color-mix(in srgb, #4b4b53 calc(var(--dark) * 100%), #a9a9b2)));
   --link:   color-mix(in srgb, color-mix(in srgb, var(--hue) 55%, white) calc(var(--dark) * 100%), var(--hue));
+  /* OP and moderator colours: Reddit's own tag blue and green (dark values on the dark themes, deeper ones on the light themes) */
+  --op:     color-mix(in srgb, #90A9FD calc(var(--dark) * 100%), #115BCA);
+  --mod:    color-mix(in srgb, #00C61C calc(var(--dark) * 100%), #016E0B);
 }
 @media (prefers-color-scheme: dark) {
   :root { --sys: 1; }
@@ -296,9 +299,10 @@ shreddit-post[view-context="CommentsPage"] h1[slot="title"] {
   letter-spacing: -0.02em;
   text-wrap: balance;
   color: var(--ink);
+  margin-bottom: 0.75rem;                                       /* a little less under the title (Reddit: 1rem) */
 }
-shreddit-post[view-context="CommentsPage"] shreddit-post-text-body { display: block; margin-top: 1rem; }
-#pdp-credit-bar { font-size: 0.8125rem; color: var(--muted); }
+shreddit-post[view-context="CommentsPage"] shreddit-post-text-body { display: block; margin-top: 0.75rem; }
+#pdp-credit-bar { font-size: 0.8125rem; color: var(--muted); padding-bottom: 1rem; }   /* more room between the community/author lines and the title (Reddit: 0.25rem) */
 #pdp-credit-bar span.avatar { display: none; }               /* community icon: no icon squares */
 #pdp-credit-bar a.subreddit-name { font-size: 0.8125rem; font-weight: 600; color: var(--ink); }
 
@@ -328,6 +332,11 @@ shreddit-comment [slot="commentMeta"] .author-hovercard-trigger a { font-size: 1
 /* User flair (the little pill under the name): room above it, and more padding inside it. The pill's own colours are set by each community. */
 shreddit-comment [slot="commentMeta"] author-flair-event-handler { margin-top: 0.375rem; }
 shreddit-comment [slot="commentMeta"] author-flair-event-handler > span { padding: 0.1875rem 0.75rem; }
+/* Achievement badges ("Top 1% Commenter" ...) are a separate pill right after the flair element, with their own wrapper:
+   same space above and padding inside, and a little room from a flair pill beside them. */
+shreddit-comment [slot="commentMeta"] author-flair-event-handler + .author-hovercard-trigger { margin-top: 0.375rem; }
+shreddit-comment [slot="commentMeta"] author-flair-event-handler + .author-hovercard-trigger > span { padding: 0.1875rem 0.75rem; }
+shreddit-comment [slot="commentMeta"] author-flair-event-handler:not([hidden]) + .author-hovercard-trigger { margin-left: 0.375rem; }
 
 /* Rhythm: a hairline and room between top-level comments; replies get room but no line (their thread line already separates them).
    Margin, not padding, on replies, so Reddit's thread-line curve moves together with the avatar it points at. */
@@ -335,6 +344,33 @@ shreddit-comment[depth="0"] { margin-top: 1.5rem; padding-top: 1.5rem; border-to
 shreddit-comment:not([depth="0"]) { margin-top: 1.5rem; }
 shreddit-comment [slot="commentMeta"] a faceplate-timeago { font-size: 0.8125rem; color: var(--muted); }
 shreddit-comment div[slot="comment"] { color: var(--ink); }
+
+/* OP and moderator comments (variation of "name colour + faint tint"):
+   - the name takes Reddit's own tag colours (blue for the thread author, green for moderators; moderator wins if both);
+   - a very faint wash of the same colour sits behind the comment text only (not behind replies), pulled out with negative
+     margins so the text stays aligned with every other comment. No extra line: the thread line is already there.
+   - Reddit draws its own small OP / MOD badge inside shadow DOM, in its light-theme colour on dark themes. The badge colours
+     are set on the badge itself so they follow our theme too. */
+shreddit-comment[is-op] [slot="commentMeta"] .author-hovercard-trigger a,
+shreddit-comment[is-user-op] [slot="commentMeta"] .author-hovercard-trigger a { color: var(--op); }
+shreddit-comment[is-mod-distinguished] [slot="commentMeta"] .author-hovercard-trigger a { color: var(--mod); }
+shreddit-comment[is-op] > details > div > div > div[slot="comment"],
+shreddit-comment[is-user-op] > details > div > div > div[slot="comment"] {
+  background: color-mix(in srgb, var(--op) 6%, transparent);
+  border-radius: 6px; padding: 0.5rem 0.75rem; margin: 0 -0.75rem;
+}
+shreddit-comment[is-mod-distinguished] > details > div > div > div[slot="comment"] {
+  background: color-mix(in srgb, var(--mod) 6%, transparent);
+  border-radius: 6px; padding: 0.5rem 0.75rem; margin: 0 -0.75rem;
+}
+shreddit-comment-badges,
+shreddit-distinguished-post-tags {
+  --color-tags-author-content: var(--op) !important;
+  --color-tags-author-content-weaker: var(--op) !important;
+  --color-tags-moderator-content: var(--mod) !important;
+  --color-tags-moderator-content-weaker: var(--mod) !important;
+  --color-global-moderator: var(--mod) !important;
+}
 
 /* ------------------------------------------------------------------ *
  * 8. Header: no logo (the word Home instead, as in the AO3 style), a hairline, a quiet search box

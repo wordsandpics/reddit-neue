@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name           Reddit Neue
 @namespace      reddit-neue
-@version        0.0.4
+@version        0.0.7
 @description    A minimal, typography-first restyle of new Reddit. Airy and discreet. Light, dark, slate, paper or follows your system. Work in progress.
 @author         wordsandpics
 @license        MIT
@@ -54,10 +54,10 @@
   --muted:  color-mix(in srgb, #6b6054 calc(var(--paper) * 100%), color-mix(in srgb, #aeb6c6 calc(var(--slate) * 100%), color-mix(in srgb, #9b9ba3 calc(var(--dark) * 100%), #6b6b73)));
   /* between --muted and --ink in light mode (a bit more contrast for small text); same as --muted in dark */
   --soft:   color-mix(in srgb, var(--muted) calc(100% - (1 - var(--dark)) * 30%), var(--ink));
-  --line:   color-mix(in srgb, #ddd0bb calc(var(--paper) * 100%), color-mix(in srgb, #3a4357 calc(var(--slate) * 100%), color-mix(in srgb, #303036 calc(var(--dark) * 100%), #e6e6e8)));
-  --line-2: color-mix(in srgb, #c9b99d calc(var(--paper) * 100%), color-mix(in srgb, #4b556b calc(var(--slate) * 100%), color-mix(in srgb, #4b4b53 calc(var(--dark) * 100%), #cfcfd4)));
+  --line:   color-mix(in srgb, #ddd0bb calc(var(--paper) * 100%), color-mix(in srgb, #4b556b calc(var(--slate) * 100%), color-mix(in srgb, #44444c calc(var(--dark) * 100%), #e6e6e8)));
+  --line-2: color-mix(in srgb, #c9b99d calc(var(--paper) * 100%), color-mix(in srgb, #5b6680 calc(var(--slate) * 100%), color-mix(in srgb, #5a5a64 calc(var(--dark) * 100%), #cfcfd4)));
   /* outline of buttons: a step darker than --line-2 on the light themes */
-  --btn-line: color-mix(in srgb, #a9987b calc(var(--paper) * 100%), color-mix(in srgb, #4b556b calc(var(--slate) * 100%), color-mix(in srgb, #4b4b53 calc(var(--dark) * 100%), #a9a9b2)));
+  --btn-line: color-mix(in srgb, #a9987b calc(var(--paper) * 100%), color-mix(in srgb, #5b6680 calc(var(--slate) * 100%), color-mix(in srgb, #5a5a64 calc(var(--dark) * 100%), #a9a9b2)));
   --link:   color-mix(in srgb, color-mix(in srgb, var(--hue) 55%, white) calc(var(--dark) * 100%), var(--hue));
   /* OP and moderator colours: Reddit's own tag blue and green (dark values on the dark themes, deeper ones on the light themes) */
   --op:     color-mix(in srgb, #90A9FD calc(var(--dark) * 100%), #115BCA);
@@ -364,14 +364,18 @@ shreddit-post[view-context="CommentsPage"] shreddit-post-text-body { display: bl
  * ------------------------------------------------------------------ */
 shreddit-comment [slot="commentMeta"] .author-hovercard-trigger a { font-size: 1rem; font-weight: 600; color: var(--ink); }
 
-/* User flair (the little pill under the name): room above it, and more padding inside it. The pill's own colours are set by each community. */
+/* User flair (the little pill under the name): room above it, more padding inside it, and a touch heavier, weight 550 (400 looks thin on low-resolution screens). The pill's own colours are set by each community. */
 shreddit-comment [slot="commentMeta"] author-flair-event-handler { margin-top: 0.375rem; }
-shreddit-comment [slot="commentMeta"] author-flair-event-handler > span { padding: 0.1875rem 0.75rem; }
+shreddit-comment [slot="commentMeta"] author-flair-event-handler > span { padding: 0.1875rem 0.75rem; font-weight: 550; }
 /* Achievement badges ("Top 1% Commenter" ...) are a separate pill right after the flair element, with their own wrapper:
    same space above and padding inside, and a little room from a flair pill beside them. */
 shreddit-comment [slot="commentMeta"] author-flair-event-handler + .author-hovercard-trigger { margin-top: 0.375rem; }
-shreddit-comment [slot="commentMeta"] author-flair-event-handler + .author-hovercard-trigger > span { padding: 0.1875rem 0.75rem; }
+shreddit-comment [slot="commentMeta"] author-flair-event-handler + .author-hovercard-trigger > span { padding: 0.1875rem 0.75rem; font-weight: 550; }
 shreddit-comment [slot="commentMeta"] author-flair-event-handler:not([hidden]) + .author-hovercard-trigger { margin-left: 0.375rem; }
+
+/* Thread lines (the vertical lines beside replies): Reddit draws them in its faintest grey, the same as our dividers, so on dark and slate they nearly vanish.
+   Use the stronger line colour. Reddit's own hover rule (higher specificity) still turns the line darker on hover. */
+shreddit-comment .comment-main-grid.comment-main-grid { --thread-color: var(--line-2); }
 
 /* Rhythm: a hairline and room between top-level comments; replies get room but no line (their thread line already separates them).
    Margin, not padding, on replies, so Reddit's thread-line curve moves together with the avatar it points at. */

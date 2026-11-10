@@ -1,9 +1,12 @@
 /* ==UserStyle==
 @name           Reddit Neue
-@namespace      reddit-neue
-@version        0.0.7
-@description    A minimal, typography-first restyle of new Reddit. Airy and discreet. Light, dark, slate, paper or follows your system. Work in progress.
+@namespace      https://github.com/wordsandpics/reddit-neue
+@version        1.0.0
+@description    A minimal, typography-first restyle of new Reddit. Airy and discreet. Light, dark, slate, paper or follows your system.
 @author         wordsandpics
+@homepageURL    https://github.com/wordsandpics/reddit-neue
+@supportURL     https://github.com/wordsandpics/reddit-neue/issues
+@updateURL      https://raw.githubusercontent.com/wordsandpics/reddit-neue/main/reddit-neue.user.css
 @license        MIT
 @preprocessor   default
 @var text   rn-ui-font      "Interface font" "'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif"
@@ -54,16 +57,16 @@
   --muted:  color-mix(in srgb, #6b6054 calc(var(--paper) * 100%), color-mix(in srgb, #aeb6c6 calc(var(--slate) * 100%), color-mix(in srgb, #9b9ba3 calc(var(--dark) * 100%), #6b6b73)));
   /* between --muted and --ink in light mode (a bit more contrast for small text); same as --muted in dark */
   --soft:   color-mix(in srgb, var(--muted) calc(100% - (1 - var(--dark)) * 30%), var(--ink));
-  --line:   color-mix(in srgb, #ddd0bb calc(var(--paper) * 100%), color-mix(in srgb, #4b556b calc(var(--slate) * 100%), color-mix(in srgb, #44444c calc(var(--dark) * 100%), #e6e6e8)));
-  --line-2: color-mix(in srgb, #c9b99d calc(var(--paper) * 100%), color-mix(in srgb, #5b6680 calc(var(--slate) * 100%), color-mix(in srgb, #5a5a64 calc(var(--dark) * 100%), #cfcfd4)));
+  --line:   color-mix(in srgb, #c7bba8 calc(var(--paper) * 100%), color-mix(in srgb, #4b556b calc(var(--slate) * 100%), color-mix(in srgb, #44444c calc(var(--dark) * 100%), #cfcfd1)));
+  --line-2: color-mix(in srgb, #b5a68d calc(var(--paper) * 100%), color-mix(in srgb, #5b6680 calc(var(--slate) * 100%), color-mix(in srgb, #5a5a64 calc(var(--dark) * 100%), #bababf)));
   /* outline of buttons: a step darker than --line-2 on the light themes */
-  --btn-line: color-mix(in srgb, #a9987b calc(var(--paper) * 100%), color-mix(in srgb, #5b6680 calc(var(--slate) * 100%), color-mix(in srgb, #5a5a64 calc(var(--dark) * 100%), #a9a9b2)));
+  --btn-line: color-mix(in srgb, #98896f calc(var(--paper) * 100%), color-mix(in srgb, #5b6680 calc(var(--slate) * 100%), color-mix(in srgb, #5a5a64 calc(var(--dark) * 100%), #9898a0)));
   --link:   color-mix(in srgb, color-mix(in srgb, var(--hue) 55%, white) calc(var(--dark) * 100%), var(--hue));
   /* OP and moderator colours: Reddit's own tag blue and green (dark values on the dark themes, deeper ones on the light themes) */
   --op:     color-mix(in srgb, #90A9FD calc(var(--dark) * 100%), #115BCA);
   --mod:    color-mix(in srgb, #00C61C calc(var(--dark) * 100%), #016E0B);
   /* underline of links in running text: the hairline grey on the light themes, a stronger grey on dark and slate where the hairline vanishes */
-  --ul:     color-mix(in srgb, color-mix(in srgb, var(--muted) 70%, var(--line-2)) calc(var(--dark) * 100%), var(--line-2));
+  --ul:     color-mix(in srgb, color-mix(in srgb, var(--muted) 70%, var(--line-2)) calc(var(--dark) * 100%), color-mix(in srgb, #c9b99d calc(var(--paper) * 100%), #cfcfd4));
 }
 @media (prefers-color-scheme: dark) {
   :root { --sys: 1; }

@@ -32,6 +32,8 @@ Light, dark, slate and paper. A thread on top, a community page below. Click an 
 2. [Open this link](https://raw.githubusercontent.com/wordsandpics/reddit-neue/main/reddit-neue.user.css). Stylus offers to install the style.
 3. Click **Install**, then reload Reddit.
 
+The style is also listed on [userstyles.world](https://userstyles.world/style/31412/reddit-neue).
+
 Tested in Chrome and Firefox. Stylus checks for new versions on its own. Other style extensions are untested and may not read the file or its settings.
 
 **Settings:** click the Stylus icon, then the gear next to Reddit Neue. You can change the colour theme (follow system, light, dark, slate or paper), the interface font, the post and comment font, text size, line height and accent colour.

@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name           Reddit Neue
 @namespace      https://github.com/wordsandpics/reddit-neue
-@version        1.0.0
+@version        1.0.1
 @description    A minimal, typography-first restyle of new Reddit. Airy and discreet. Light, dark, slate, paper or follows your system.
 @author         wordsandpics
 @homepageURL    https://github.com/wordsandpics/reddit-neue
@@ -360,6 +360,14 @@ shreddit-post[view-context="CommentsPage"] shreddit-post-text-body { display: bl
 :is(shreddit-post-text-body, shreddit-comment div[slot="comment"], .wiki-content, shreddit-profile-comment .md) hr { border: 0; border-top: 1px solid var(--line); margin: 1.5em 0; }
 :is(shreddit-post-text-body, shreddit-comment div[slot="comment"], .wiki-content, shreddit-profile-comment .md) code { background: var(--bg-2); border-radius: 3px; padding: 0.1em 0.3em; font-size: 0.9em; }
 :is(shreddit-post-text-body, shreddit-comment div[slot="comment"], .wiki-content, shreddit-profile-comment .md) pre { background: var(--bg-2); border-radius: 4px; padding: 0.75rem 1rem; overflow-x: auto; }
+/* Headings (Markdown "#" lines) inside posts, comments and profile comments: Reddit sets them light and tightly spaced.
+   Semibold and a more generous line height, like the titles; the sizes stay Reddit's. Wiki headings have their own rules in section 12. */
+:is(shreddit-post-text-body .md, shreddit-comment div[slot="comment"], shreddit-profile-comment .md) :is(h1, h2, h3, h4, h5, h6) {
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
 :is(shreddit-post-text-body, shreddit-comment div[slot="comment"], .wiki-content, shreddit-profile-comment .md) pre code { background: none; padding: 0; }
 
 /* ------------------------------------------------------------------ *

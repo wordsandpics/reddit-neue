@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.1
+- Headings inside posts and comments are semibold with a more generous line height.
+
 ## 1.0.0
 First public release.
 - Feeds, posts, comments, the header and both sidebars restyled; other pages get a lighter treatment.
